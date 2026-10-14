@@ -214,7 +214,7 @@ var N={
  frPay:[264865,272479,270984,290093,323639,340189,289849,215591,172260,156912],
  infl:[62301,63674,70382,68727,65868,70353,72808,70424,69232,66360]};
 var NFX=[929.14,911.18,858.45,861.19,931.57,901.76,892.89,922.34,924.78,929.18];
-// Peso swaps (CLP bn): net floating = buy − sell; negative = funds receive fixed
+// Peso swaps (CLP bn = 10^9 pesos): net floating = buy − sell; negative = funds receive fixed
 var SPC={le2Net:[13652,15410,15941,13119,14710,10510,-4767,-20412,-27516,-29738],gt2Net:[-14861,-16370,-15696,-14790,-17973,-18703,-18884,-16158,-15408,-14415],le2Gross:78268,gt2Gross:57634};
 
 // USDCLP bar
@@ -242,7 +242,7 @@ var kp=[["Total fund assets","US$"+fmt(AUM)+"M","30 Sep 2026 at 970.46",""],
  ["Derivatives PV","−US$"+fmt(-last.net)+"M",(last.net/AUM*100).toFixed(1)+"% of assets · +US$"+fmt(M[0].net)+"M a year earlier","neg"],
  ["Net FX exposure","≈ US$"+fmt(forTot+N.usdclpNet[9])+"M","Foreign assets less US$"+fmt(-N.usdclpNet[9])+"M sold forward",""],
  ["US$ swap duration","≈ "+durLo.toFixed(0)+"–"+durHi.toFixed(0)+" yrs","On US$"+fmt(netN/1000)+"bn net receive-fixed",""],
- ["Peso swap duration","≈ "+clDur.toFixed(1)+" yrs","On CLP "+fmt(clNet/1000,1)+" trn net receive-fixed",""]];
+ ["Peso swap duration","≈ "+clDur.toFixed(1)+" yrs","On US$"+fmt(clNet/929.18,1)+"bn net receive-fixed",""]];
 document.getElementById("kpis").innerHTML=kp.map(function(k){return '<div class="kpi"><div class="l">'+k[0]+'</div><div class="v '+k[3]+'">'+k[1]+'</div><div class="n">'+k[2]+'</div></div>'}).join("");
 
 // Allocation
@@ -353,12 +353,13 @@ document.getElementById("usTbl").innerHTML='<tr><th>Item, 31 Aug 2026</th><th>Va
 
 // Peso swaps
 document.getElementById("clDuo").innerHTML='<div><div class="l">Est. duration, net position</div><div class="big">≈ '+clDur.toFixed(1)+'</div></div><div><div class="l">Est. DV01, US$M per bp</div><div class="big">'+(clDV(4)*1000/929.18).toFixed(1)+'</div></div>';
-document.getElementById("clTbl").innerHTML='<tr><th>CLP bn, 31 Aug 2026</th><th>Up to 2y</th><th>Over 2y</th></tr>'+
- '<tr><td>Gross notional</td><td>'+fmt(SPC.le2Gross)+'</td><td>'+fmt(SPC.gt2Gross)+'</td></tr>'+
- '<tr><td>Net receive fixed</td><td>'+fmt(-SPC.le2Net[9])+'</td><td>'+fmt(-SPC.gt2Net[9])+'</td></tr>'+
- '<tr><td>Net, Nov 2025</td><td class="neg">'+sgn(-SPC.le2Net[0])+'</td><td>'+fmt(-SPC.gt2Net[0])+'</td></tr>'+
- '<tr class="tot"><td>Net receive fixed, US$ M</td><td colspan="2">'+fmt(clNet*1000/929.18)+'</td></tr>'+
- '<tr><td colspan="3" class="note">Method: assumed average duration of 1 year for the up-to-2-year bucket and 4 years for the over-2-year bucket (range '+clDurLo.toFixed(1)+'–'+clDurHi.toFixed(1)+' years for 3–6). The short bucket flipped from paying to receiving fixed in May 2026. A negative value in Nov 2025 means the funds were paying fixed.</td></tr>';
+var u=function(bn,fx){return bn*1000/fx}; // CLP bn (10^9 pesos) -> US$ M
+document.getElementById("clTbl").innerHTML='<tr><th>US$ M</th><th>Up to 2y</th><th>Over 2y</th><th>Total</th></tr>'+
+ '<tr><td>Gross notional, 31 Aug</td><td>'+fmt(u(SPC.le2Gross,929.18))+'</td><td>'+fmt(u(SPC.gt2Gross,929.18))+'</td><td>'+fmt(u(SPC.le2Gross+SPC.gt2Gross,929.18))+'</td></tr>'+
+ '<tr class="tot"><td>Net receive fixed, 31 Aug</td><td>'+fmt(u(-SPC.le2Net[9],929.18))+'</td><td>'+fmt(u(-SPC.gt2Net[9],929.18))+'</td><td>'+fmt(u(clNet,929.18))+'</td></tr>'+
+ '<tr><td>Net receive fixed, Nov 2025</td><td class="neg">'+sgn(u(-SPC.le2Net[0],929.14))+'</td><td>'+fmt(u(-SPC.gt2Net[0],929.14))+'</td><td>'+sgn(u(-(SPC.le2Net[0]+SPC.gt2Net[0]),929.14))+'</td></tr>'+
+ '<tr><td>Loss for +100 bp in CLP rates</td><td colspan="3" class="neg">≈ '+fmt(clDV(4)*1000/929.18*100)+'</td></tr>'+
+ '<tr><td colspan="4" class="note">Converted at month-end USDCLP (929.18 Aug 2026, 929.14 Nov 2025). The Banco Central reports these swaps in miles de millones de pesos (10^9 CLP); its own US$ summary table matches the converted totals. Duration method: assumed average duration of 1 year for the up-to-2-year bucket and 4 years for the over-2-year bucket (range '+clDurLo.toFixed(1)+'–'+clDurHi.toFixed(1)+' years for 3–6). The short bucket flipped from paying to receiving fixed in May 2026; a negative value means the funds were paying fixed.</td></tr>';
 
 // Turnover, Jan–Aug 2026
 var TL=["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26"];
