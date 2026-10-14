@@ -1,7 +1,7 @@
 <title>AFP Portfolio Monitor</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;700&display=swap">
 <style>
-/* Layout: KPIs first, then USD allocation, alternatives + FX position, derivatives (PV, FX book, rates book with duration), sources. US$ millions throughout. */
+/* Layout: KPIs, USD allocation (system and by fund), alternatives + FX position, derivatives PV history, outstanding notionals and duration, turnover, sources. Official Sep 2026 data, US$ millions. */
 :root{
   --bg:#f3f5f7; --surface:#ffffff; --fg:#14202b; --muted:#5b6b7a; --line:#d9e0e6;
   --accent:#0b5c7a; --c1:#0b5c7a; --c2:#3f9bb8; --c3:#8a6d1f; --c4:#c9a64a; --c5:#7a8794;
@@ -68,9 +68,9 @@ svg text.val{fill:var(--fg);font-size:11px}
 <header>
   <div>
     <h1>AFP Portfolio Monitor</h1>
-    <div class="stamp">Chilean pension funds (Fondos A–E) · all figures US$ millions unless stated</div>
+    <div class="stamp">Chilean pension funds (Fondos A–E) · US$ millions unless stated · portfolio at 30 Sep 2026</div>
   </div>
-  <div class="stamp">Updated 13 Oct 2026</div>
+  <div class="stamp">Updated 14 Oct 2026</div>
 </header>
 
 <div class="fxbar" id="fxbar"></div>
@@ -78,88 +78,96 @@ svg text.val{fill:var(--fg);font-size:11px}
 <section><div class="kpis" id="kpis"></div></section>
 
 <div class="alert">
-  <b>Read before using the numbers</b>
+  <b>How to read this</b>
   <ul>
-    <li>Portfolio figures are at 31 Aug 2026, the latest month with an asset-class breakdown, converted at USDCLP 929.18. End-September total assets are shown at 970.46.</li>
-    <li>The derivatives PV series joins different sources: Superintendencia monthly reports (all derivatives, CLP, converted here) and the regulator's foreign interest-rate derivative figures reported by Bloomberg in US$. Points with different coverage are labelled.</li>
-    <li>Rates-derivative duration is estimated from a published DV01 and notional taken at different dates. Treat it as an order of magnitude.</li>
+    <li>Holdings, alternatives and derivatives value are the Superintendencia de Pensiones' official month-end figures in CLP, converted at that month's dólar observado (Banco Central). September 2026 uses 970.46.</li>
+    <li>Outstanding derivative notionals come from the Banco Central's SIID tables and run to August 2026, one month behind the portfolio.</li>
+    <li>Swap durations are estimates. The Banco Central gives notional by tenor bucket but no DV01, so the method and assumptions are stated next to each figure.</li>
   </ul>
 </div>
 
 <section class="panel">
-  <h2>Assets by fund</h2>
-  <p class="sub">Fund values at 31 Aug 2026 (Superintendencia, Ficha Estadística N° 166), in US$ at 929.18. System total at 30 Sep 2026: US$235,470M at 970.46; about US$10.7bn of the US$15.1bn fall since August comes from the peso moving from 929.18 to 970.46.</p>
-  <div class="scroll"><table id="fundTbl"></table></div>
-</section>
-
-<section class="panel">
-  <h2>Allocation by asset class <span class="tag">31 Aug 2026</span></h2>
-  <p class="sub">System-wide shares from the Superintendencia applied to total assets of US$250,554M. Alternatives are included inside these four lines and are broken out further down.</p>
+  <h2>Allocation by asset class <span class="tag">30 Sep 2026</span></h2>
+  <p class="sub">System total US$235,470M. Derivatives are shown at market value (negative = net liability). Other lines are cash, receivables and collateral.</p>
   <div class="bar" id="allocBar"></div>
   <div class="legend" id="allocLegend"></div>
   <div class="scroll" style="margin-top:12px"><table id="allocTbl"></table></div>
 </section>
 
 <section class="panel">
-  <h2>Allocation by fund <span class="tag est">indicative</span></h2>
-  <p class="sub">Per-fund shares from the 28 Feb 2026 monthly report applied to 31 Aug fund values. Replace with the August report shares once available.</p>
+  <h2>Allocation by fund <span class="tag">30 Sep 2026</span></h2>
+  <p class="sub">Official holdings by fund (Superintendencia, Tabla 16), US$ millions at 970.46.</p>
   <div class="scroll"><table id="fundAllocTbl"></table></div>
 </section>
 
 <div class="grid2">
 <section class="panel">
-  <h2>Alternative assets <span class="tag est">indicative</span></h2>
-  <p class="sub">Private equity, private debt, real estate and infrastructure funds. 28 Feb 2026 shares applied to August assets.</p>
+  <h2>Alternative assets <span class="tag">30 Sep 2026</span></h2>
+  <p class="sub">Private equity, private debt, real estate and infrastructure, held directly or through investment funds.</p>
   <div class="big" id="altBig"></div>
   <div class="scroll"><table id="altTbl"></table></div>
 </section>
 <section class="panel">
-  <h2>FX position <span class="tag est">indicative</span></h2>
-  <p class="sub">Gross foreign-currency assets less the forward USD sales that hedge them. Only Fund E's hedge ratio is public (121% of its US$ holdings in July); for A–D the press reports none above 55%, so their net open position is shown as a range.</p>
+  <h2>FX position</h2>
+  <p class="sub">Foreign-currency assets less the US$ sold forward against pesos. Forwards between two foreign currencies do not change exposure to the peso and are shown below.</p>
+  <div class="duo" id="fxDuo"></div>
   <div class="scroll"><table id="fxTbl"></table></div>
 </section>
 </div>
 
 <section class="panel">
-  <h2>Derivatives portfolio: present value <span class="tag">US$ M</span></h2>
-  <p class="sub">Market value (PV) of derivative positions held by the funds. Bars show local and foreign books where the Superintendencia splits them; the September 2025 and 2026 points cover foreign interest-rate derivatives only.</p>
-  <div class="scroll"><svg id="pvChart" viewBox="0 0 860 300" width="100%" style="min-width:600px" role="img" aria-label="Present value of derivatives portfolio, US$ millions"></svg></div>
+  <h2>Derivatives portfolio: present value</h2>
+  <p class="sub">Monthly market value of all derivatives, split by where the counterparty sits. Local counterparties hold mostly USD-CLP forwards and peso swaps; foreign counterparties hold mostly US$ interest-rate swaps and currency forwards. Each month converted at its own month-end USDCLP.</p>
+  <div class="scroll"><svg id="pvChart" viewBox="0 0 860 300" width="100%" style="min-width:640px" role="img" aria-label="Monthly present value of derivatives, US$ millions"></svg></div>
   <div class="legend" id="pvLegend"></div>
   <div class="scroll" style="margin-top:12px"><table id="pvTbl"></table></div>
 </section>
 
 <div class="grid2">
 <section class="panel">
-  <h2>FX derivatives book</h2>
-  <p class="sub">Mostly USD/CLP forwards selling dollars against pesos to hedge foreign holdings.</p>
-  <div class="duo" id="fxDuo"></div>
-  <div class="scroll"><table id="fxDerTbl"></table></div>
+  <h2>Derivatives PV by fund <span class="tag">30 Sep 2026</span></h2>
+  <div class="scroll"><table id="pvFundTbl"></table></div>
 </section>
 <section class="panel">
-  <h2>Rates derivatives book</h2>
-  <p class="sub">Mostly receive-fixed US$ interest-rate swaps (funds gain if US rates fall), plus local Cámara (CLP) swaps.</p>
-  <div class="duo" id="rtDuo"></div>
-  <div class="scroll"><table id="rtTbl"></table></div>
+  <h2>FX forwards outstanding <span class="tag">31 Aug 2026</span></h2>
+  <p class="sub">Notional by currency pair (Banco Central DER_FP_PPM_01).</p>
+  <div class="scroll"><table id="pairTbl"></table></div>
+</section>
+</div>
+
+<section class="panel">
+  <h2>Outstanding notional, FX and rates</h2>
+  <p class="sub">Banco Central (SIID), US$ millions, end of month. For swaps, “receive fixed” means the funds gain when rates fall.</p>
+  <div class="scroll"><table id="notTbl"></table></div>
+</section>
+
+<div class="grid2">
+<section class="panel">
+  <h2>Rates book: US$ swaps <span class="tag est">duration estimated</span></h2>
+  <div class="duo" id="usDuo"></div>
+  <div class="scroll"><table id="usTbl"></table></div>
+</section>
+<section class="panel">
+  <h2>Rates book: peso swaps (Cámara) <span class="tag est">duration estimated</span></h2>
+  <div class="duo" id="clDuo"></div>
+  <div class="scroll"><table id="clTbl"></table></div>
 </section>
 </div>
 
 <section class="panel">
   <h2>Derivatives turnover <span class="tag">monto transado</span></h2>
-  <p class="sub">Monthly traded amounts, US$ millions. Source: Banco Central de Chile, DER_RES_SUS_02. These are trading flows, not outstanding positions. Last three months are provisional.</p>
-  <div class="scroll"><svg id="chart" viewBox="0 0 860 280" width="100%" style="min-width:640px" role="img" aria-label="Monthly FX and interest rate derivatives turnover"></svg></div>
-  <div class="legend" id="chartLegend"></div>
-  <div class="scroll" style="margin-top:12px"><table id="turnTbl"></table></div>
+  <p class="sub">Monthly traded amounts, US$ millions (Banco Central DER_RES_SUS_02). These are trading flows, not positions.</p>
+  <div class="scroll"><table id="turnTbl"></table></div>
 </section>
 
 <section class="panel gap">
-  <h2>Data still missing</h2>
+  <h2>Sources and limits</h2>
   <ul>
-    <li>Monthly derivatives PV for Apr–Aug 2026 (Superintendencia monthly reports; not reachable in this update).</li>
-    <li>Outstanding FX forward notional and hedge ratios for Funds A–D (Banco Central “Fondos de pensiones &gt; Montos vigentes”).</li>
-    <li>A current (2026) DV01 for the US$ swap book, and outstanding notional for local Cámara swaps, which are needed for a firm duration figure.</li>
-    <li>August 2026 monthly report with allocation and alternatives by fund.</li>
+    <li>No official DV01 is published for the pension funds' swaps. The US$ swap duration rests on a Citi estimate from Sep 2025; the peso swap duration rests on assumed average tenors within the Banco Central's two buckets.</li>
+    <li>Hedge ratios by fund are not published monthly. The system figure (40.9%, June) is from the Superintendencia's quarterly report.</li>
+    <li>Derivatives value is split by counterparty location, not by FX versus rates.</li>
   </ul>
-  <p class="src">Sources: <a href="https://www.spensiones.cl/portal/institucional/594/articles-17155_recurso_1.pdf">Ficha Estadística Previsional N° 166</a> · <a href="https://www.spensiones.cl/portal/institucional/594/articles-16971_recurso_1.pdf">Monthly report, Feb 2026</a> · <a href="https://www.spensiones.cl/portal/institucional/594/articles-17009_recurso_1.pdf">Monthly report, Mar 2026</a> · <a href="https://www.spensiones.cl/portal/institucional/594/w3-article-17136.html">SP press release, Aug 2026</a> · <a href="https://www.spensiones.cl/portal/institucional/594/w3-article-17108.html">SP press release, Jul 2026</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/fondos-de-pensiones-de-chile-afrontan-perdidas-de-us7700-millones-por-apuestas-a-tasas-de-eeuu/">Bloomberg Línea, Oct 2026 (US$7.7bn loss)</a> · <a href="https://www.bloomberg.com/news/articles/2026-10-13/us-swaps-bets-backfire-wiping-out-billions-from-funds-in-chile">Bloomberg, 13 Oct 2026</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/regulador-chileno-busca-frenar-auge-de-derivados-que-han-disparado-rentabilidad-de-las-afp/">Bloomberg Línea (Citi DV01)</a> · <a href="https://www.df.cl/senal-df/senales-financieras/la-apuesta-de-las-afp-que-gatillo-la-crisis-de-rentabilidad-del-fondo-e">Señal DF (Fund E hedge, IEF notional)</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/chile-limita-derivados-de-afp-que-impulsaron-retornos-y-eleva-control-de-riesgos/">Bloomberg Línea (Res. 549)</a> · <a href="https://www.sii.cl/valores_y_fechas/dolar/dolar2026.htm">SII dólar observado 2026</a> · <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_RES_SUS_02/638670944247282966">Banco Central DER_RES_SUS_02</a></p>
+  <p class="src">Sources: <a href="https://spensiones.cl/portal/institucional/594/articles-17168_recurso_1.pdf">SP monthly report, Sep 2026</a> and earlier monthly reports (Sep 2025–Aug 2026) · <a href="https://spensiones.cl/portal/institucional/594/articles-17132_recurso_1.pdf">SP quarterly investment report, Q2 2026</a> · Banco Central de Chile BDE: <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_RES_POS_02/638670943827780640">DER_RES_POS_02</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_PPRYSC_01/638671060253736609">DER_FP_PPRYSC_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_PPM_01/638671060919490958">DER_FP_PPM_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_TAS_FP_STO_01/638690071945166200">DER_TAS_FP_STO_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_SPC_STO_01/638690068187754688">DER_FP_SPC_STO_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_RES_SUS_02/638670944247282966">DER_RES_SUS_02</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_TIPO_CAMBIO/MN_TIPO_CAMBIO4/DOLAR_OBS_ADO">dólar observado</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/regulador-chileno-busca-frenar-auge-de-derivados-que-han-disparado-rentabilidad-de-las-afp/">Bloomberg Línea (Citi DV01)</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/fondos-de-pensiones-de-chile-afrontan-perdidas-de-us7700-millones-por-apuestas-a-tasas-de-eeuu/">Bloomberg Línea (US$7.7bn)</a></p>
 </section>
 </div>
 
@@ -167,160 +175,195 @@ svg text.val{fill:var(--fg);font-size:11px}
 var fmt=function(n,d){return n.toLocaleString("en-US",{minimumFractionDigits:d||0,maximumFractionDigits:d||0})};
 var sgn=function(n,d){return (n<0?"−":"")+fmt(Math.abs(n),d)};
 var cls=function(n){return n<0?"neg":"pos"};
-// USDCLP (dólar observado) used for each conversion
-var FX={feb26:871.41,mar26:927.46,jul26:924.78,aug26:929.18,sep26:970.46};
-var AUM=250554, AUM_SEP=235470;
-var funds=[["A",48000],["B",60613],["C",79984],["D",39074],["E",22884]];
+var F=["A","B","C","D","E"];
+var FX=970.46; // dólar observado 30 Sep 2026
+var usd=function(clpMM){return clpMM/FX};
 
-document.getElementById("fxbar").innerHTML='<span>USDCLP used (dólar observado):</span>'+
- '<span>31 Aug 2026 <b>'+FX.aug26.toFixed(2)+'</b> · portfolio</span>'+
- '<span>30 Sep 2026 <b>'+FX.sep26.toFixed(2)+'</b> · Sep assets, Sep derivatives</span>'+
- '<span>31 Mar 2026 <b>'+FX.mar26.toFixed(2)+'</b></span><span>27 Feb 2026 <b>'+FX.feb26.toFixed(2)+'</b></span>';
+// SP Tabla 16, 30 Sep 2026, CLP MM. Order A..E
+var P={
+ le:[6091721,6386867,7557863,2217737,337757],
+ lf:[883216,10189295,25973288,21981171,17197320],
+ ld:[-375668,-628841,-1917400,-635914,-282466],
+ lo:[16037,101642,210066,146988,88627],
+ fe:[30388832,27864288,22502931,4997179,884272],
+ ff:[7474279,11669786,16261851,5633949,1573394],
+ fd:[-1022351,-1357483,-2165234,-1070584,-618415],
+ fo:[1452115,2041505,3877922,1677552,908877],
+ tot:[44908181,56267059,72301287,34948078,20089366]};
+var ALT={leq:[36644,28253,90440,15384,242],lfi:[266776,348323,704560,300453,318839],feq:[3083130,2933817,4247400,1213195,649489],ffi:[387726,387564,679573,275581,318392]};
+var sum=function(a){return a.reduce(function(s,x){return s+x},0)};
+var T={};for(var k in P)T[k]=sum(P[k]);
+var AUM=usd(T.tot);
+var forTot=usd(T.fe+T.ff+T.fd+T.fo);
+var altTot=usd(sum(ALT.leq)+sum(ALT.lfi)+sum(ALT.feq)+sum(ALT.ffi));
 
-// System allocation, 31 Aug 2026 (% of assets)
-var sys=[["Offshore equities",37.5,"--c1"],["Local equities",10.3,"--c4"],["Local fixed income",33.8,"--c3"],["Offshore fixed income",18.2,"--c2"],["Other (net)",0.2,"--c5"]];
-// Feb 2026 per-fund shares (% of fund) and alternatives (CLP MM$)
-var feb={A:{le:15.8,fe:64.6,lf:2.5,ff:15.2,alt:(35091+2362276+298598)/39922659*100},
-         B:{le:13.1,fe:47.1,lf:20.0,ff:17.8,alt:(27495+2249479+304763)/50679228*100},
-         C:{le:11.1,fe:29.3,lf:37.0,ff:19.8,alt:(86695+3473403+539809)/73496978*100},
-         D:{le:6.6,fe:13.4,lf:63.7,ff:12.8,alt:(14674+1014687+225481)/37131808*100},
-         E:{le:2.1,fe:3.6,lf:84.5,ff:6.0,alt:(235+581582+288014)/23168960*100}};
-var forShare={A:81.0,B:66.1,C:50.7,D:28.5,E:12.5};
-var febAltLocalTot=164190, febAltFEq=9681427, febAltFFI=1656665, febAUM=224399634;
-var altPct=(febAltLocalTot+febAltFEq+febAltFFI)/febAUM*100;
+// Month-end series Sep 2025..Sep 2026: [label, USDCLP, local der, foreign der, total assets] CLP MM
+var M=[["Sep 25",961.24,736109,2895744,213598149],["Oct 25",940.57,1197510,2876581,215916624],["Nov 25",929.14,1504334,3574448,217484413],["Dec 25",911.18,1531653,2222445,218054709],
+ ["Jan 26",858.45,1901212,1408864,219291599],["Feb 26",861.19,1834338,3540052,224399634],["Mar 26",931.57,-323862,808527,219665665],["Apr 26",901.76,364353,-147288,226480417],
+ ["May 26",892.89,386631,-935714,230316259],["Jun 26",922.34,-541800,-503174,234403521],["Jul 26",924.78,-1182534,-3169568,227556904],["Aug 26",929.18,-1487762,-3663868,232810007],["Sep 26",970.46,-3840289,-6234067,228513971]];
+M.forEach(function(m){m.loc=m[2]/m[1];m.forg=m[3]/m[1];m.net=m.loc+m.forg;m.aum=m[4]/m[1]});
 
-// Derivatives PV points (US$ M)
-var pv=[
- {d:"Sep 2025",loc:null,forg:1400,net:1400,fx:null,cov:"Foreign rate derivatives only",src:"Regulator via Bloomberg, reported in US$"},
- {d:"Feb 2026",loc:1834338/FX.feb26,forg:3540052/FX.feb26,fx:FX.feb26,cov:"All derivatives",src:"SP monthly report (CLP 5,374,390 MM)"},
- {d:"Mar 2026",loc:-323862/FX.mar26,forg:808527/FX.mar26,fx:FX.mar26,cov:"All derivatives, net",src:"SP monthly report (CLP 484,665 MM)"},
- {d:"Sep 2026",loc:null,forg:-7700,net:-7700,fx:FX.sep26,cov:"Foreign rate derivatives only",src:"Regulator via Bloomberg, reported in US$"}];
-pv.forEach(function(p){if(p.net==null)p.net=p.loc+p.forg});
+// Banco Central outstanding (US$ M), Nov 25..Aug 26
+var NL=["Nov 25","Dec 25","Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26"];
+var N={
+ usdclpNet:[-28285,-29402,-30188,-31171,-34682,-35952,-37216,-37839,-39644,-40337],
+ usdclpGross:[60058,62139,62840,61136,62099,65710,67108,69158,71730,73894],
+ fxMEME:[72062,70413,67546,67565,64586,66339,71607,81124,91831,92410],
+ spc:[162495,164913,170814,165111,183660,208631,194952,167289,152358,145598],
+ frRecv:[262469,270713,269984,286576,320455,356522,361938,363757,362064,368493],
+ frPay:[264865,272479,270984,290093,323639,340189,289849,215591,172260,156912],
+ infl:[62301,63674,70382,68727,65868,70353,72808,70424,69232,66360]};
+var NFX=[929.14,911.18,858.45,861.19,931.57,901.76,892.89,922.34,924.78,929.18];
+// Peso swaps (CLP bn): net floating = buy − sell; negative = funds receive fixed
+var SPC={le2Net:[13652,15410,15941,13119,14710,10510,-4767,-20412,-27516,-29738],gt2Net:[-14861,-16370,-15696,-14790,-17973,-18703,-18884,-16158,-15408,-14415],le2Gross:78268,gt2Gross:57634};
 
-// Rates book
-var DV01=104.5, RECV_NOTIONAL=230000, DV01_LOCAL=11.6, GROSS_NOTIONAL=500000;
-var DUR=DV01/(RECV_NOTIONAL/10000);
+// USDCLP bar
+document.getElementById("fxbar").innerHTML='<span>USDCLP (dólar observado) used:</span><span>30 Sep 2026 <b>970.46</b> · holdings and Sep PV</span><span>31 Aug 2026 <b>929.18</b> · Banco Central positions</span><span>Each month in the PV history uses its own month-end rate (table below)</span>';
+
+// US$ swap duration estimate: Citi DV01 Sep 2025 (US$104.5M/bp) on Nov 2025 legs (≈ equal) implies receive leg ≈ 3.98y longer than pay leg.
+var DV01_25=104.5, gap=DV01_25/(N.frRecv[0]/10000);
+var R=N.frRecv[9]/10000, Pm=N.frPay[9]/10000; // US$M per bp per year of duration
+function usDV01(dp){return R*(dp+gap)-Pm*dp}
+var dvLo=usDV01(0.5), dvHi=usDV01(1.5), netN=(N.frRecv[9]-N.frPay[9]);
+var durLo=dvLo/(netN/10000), durHi=dvHi/(netN/10000);
+// Peso swaps: receive-fixed nets by bucket, assumed durations 1y (≤2y) and 3–6y (>2y)
+var clDV=function(d2){return (-SPC.le2Net[9]*1 + -SPC.gt2Net[9]*d2)*1e-4} // CLP bn per bp
+var clNet=-(SPC.le2Net[9]+SPC.gt2Net[9]);
+var clDur=clDV(4)/(clNet*1e-4), clDurLo=clDV(3)/(clNet*1e-4), clDurHi=clDV(6)/(clNet*1e-4);
 
 // KPIs
-var kp=[["Total fund assets","US$"+fmt(AUM)+"M","31 Aug 2026 · US$"+fmt(AUM_SEP)+"M at 30 Sep",""],
- ["Offshore equities","US$"+fmt(AUM*.375)+"M","37.5% of assets",""],
- ["Local equities","US$"+fmt(AUM*.103)+"M","10.3% of assets",""],
- ["Local fixed income","US$"+fmt(AUM*.338)+"M","33.8% of assets",""],
- ["Offshore fixed income","US$"+fmt(AUM*.182)+"M","18.2% of assets",""],
- ["Alternative assets","≈ US$"+fmt(AUM*altPct/100)+"M","≈ "+altPct.toFixed(1)+"% of assets, indicative",""],
- ["Rate derivatives PV","−US$7,700M","Foreign rate swaps, Sep 2026 (+1,400 a year earlier)","neg"],
- ["US$ swap duration","≈ "+DUR.toFixed(1)+" yrs","DV01 US$"+DV01+"M on ~US$230bn receive-fixed",""]];
+var last=M[M.length-1];
+var kp=[["Total fund assets","US$"+fmt(AUM)+"M","30 Sep 2026 at 970.46",""],
+ ["Offshore equities","US$"+fmt(usd(T.fe))+"M",(T.fe/T.tot*100).toFixed(1)+"% of assets",""],
+ ["Local equities","US$"+fmt(usd(T.le))+"M",(T.le/T.tot*100).toFixed(1)+"% of assets",""],
+ ["Local fixed income","US$"+fmt(usd(T.lf))+"M",(T.lf/T.tot*100).toFixed(1)+"% of assets",""],
+ ["Offshore fixed income","US$"+fmt(usd(T.ff))+"M",(T.ff/T.tot*100).toFixed(1)+"% of assets",""],
+ ["Alternative assets","US$"+fmt(altTot)+"M",(altTot/AUM*100).toFixed(1)+"% of assets",""],
+ ["Derivatives PV","−US$"+fmt(-last.net)+"M",(last.net/AUM*100).toFixed(1)+"% of assets · +US$"+fmt(M[0].net)+"M a year earlier","neg"],
+ ["Net FX exposure","≈ US$"+fmt(forTot+N.usdclpNet[9])+"M","Foreign assets less US$"+fmt(-N.usdclpNet[9])+"M sold forward",""],
+ ["US$ swap duration","≈ "+durLo.toFixed(0)+"–"+durHi.toFixed(0)+" yrs","On US$"+fmt(netN/1000)+"bn net receive-fixed",""],
+ ["Peso swap duration","≈ "+clDur.toFixed(1)+" yrs","On CLP "+fmt(clNet/1000,1)+" trn net receive-fixed",""]];
 document.getElementById("kpis").innerHTML=kp.map(function(k){return '<div class="kpi"><div class="l">'+k[0]+'</div><div class="v '+k[3]+'">'+k[1]+'</div><div class="n">'+k[2]+'</div></div>'}).join("");
 
-// Fund table
-var h='<tr><th>Fund</th><th>US$ M</th><th>% of total</th><th>Foreign inv. %</th></tr>';
-funds.forEach(function(f){h+='<tr><td>Fund '+f[0]+'</td><td>'+fmt(f[1])+'</td><td>'+(f[1]/AUM*100).toFixed(1)+'%</td><td>'+forShare[f[0]].toFixed(1)+'%</td></tr>'});
-h+='<tr class="tot"><td>Total, 31 Aug</td><td>'+fmt(AUM)+'</td><td>100.0%</td><td>56.3%</td></tr>';
-h+='<tr><td>Total, 30 Sep</td><td>'+fmt(AUM_SEP)+'</td><td colspan="2" class="note">5,565.75M UF at 970.46</td></tr>';
-document.getElementById("fundTbl").innerHTML=h;
-
 // Allocation
-document.getElementById("allocBar").innerHTML=sys.map(function(s){return '<span style="width:'+Math.max(s[1],0.6)+'%;background:var('+s[2]+')" title="'+s[0]+' '+s[1]+'%"></span>'}).join("");
-document.getElementById("allocLegend").innerHTML=sys.map(function(s){return '<span><i style="background:var('+s[2]+')"></i>'+s[0]+' '+s[1]+'%</span>'}).join("");
-var a='<tr><th>Asset class</th><th>% of assets</th><th>US$ M</th><th>of which alts, US$ M</th></tr>';
-[["Offshore equities",37.5,febAltFEq],["Local equities",10.3,null],["Local fixed income",33.8,null],["Offshore fixed income",18.2,febAltFFI],["Other (net)",0.2,null]].forEach(function(r){a+='<tr><td>'+r[0]+'</td><td>'+r[1].toFixed(1)+'%</td><td>'+fmt(AUM*r[1]/100)+'</td><td>'+(r[2]?"≈ "+fmt(AUM*r[2]/febAUM):"")+'</td></tr>'});
-a+='<tr><td>Local alts (across local lines)</td><td></td><td></td><td>≈ '+fmt(AUM*febAltLocalTot/febAUM)+'</td></tr>';
-a+='<tr class="tot"><td>Total</td><td>100.0%</td><td>'+fmt(AUM)+'</td><td>≈ '+fmt(AUM*altPct/100)+'</td></tr>';
-a+='<tr><td>Offshore total</td><td>56.3%</td><td>'+fmt(AUM*.563)+'</td><td></td></tr>';
-a+='<tr><td>Local total</td><td>43.7%</td><td>'+fmt(AUM*.437)+'</td><td></td></tr>';
+var cls4=[["Offshore equities",T.fe,"--c1"],["Local equities",T.le,"--c4"],["Local fixed income",T.lf,"--c3"],["Offshore fixed income",T.ff,"--c2"]];
+var pos=cls4.concat([["Other (cash, collateral)",T.lo+T.fo,"--c5"]]);
+var posTot=sum(pos.map(function(r){return r[1]}));
+document.getElementById("allocBar").innerHTML=pos.map(function(s){return '<span style="width:'+(s[1]/posTot*100)+'%;background:var('+s[2]+')" title="'+s[0]+'"></span>'}).join("");
+document.getElementById("allocLegend").innerHTML=pos.map(function(s){return '<span><i style="background:var('+s[2]+')"></i>'+s[0]+' '+(s[1]/T.tot*100).toFixed(1)+'%</span>'}).join("");
+var a='<tr><th>Asset class</th><th>% of assets</th><th>US$ M</th><th>of which alts</th></tr>';
+[["Offshore equities",T.fe,sum(ALT.feq)],["Local equities",T.le,sum(ALT.leq)],["Local fixed income",T.lf,sum(ALT.lfi)],["Offshore fixed income",T.ff,sum(ALT.ffi)],
+ ["Derivatives, local counterparties",T.ld,0],["Derivatives, foreign counterparties",T.fd,0],["Other local",T.lo,0],["Other offshore (incl. collateral)",T.fo,0]].forEach(function(r){
+ a+='<tr><td>'+r[0]+'</td><td class="'+(r[1]<0?"neg":"")+'">'+(r[1]/T.tot*100).toFixed(1)+'%</td><td class="'+(r[1]<0?"neg":"")+'">'+sgn(usd(r[1]))+'</td><td>'+(r[2]?fmt(usd(r[2])):"")+'</td></tr>'});
+a+='<tr class="tot"><td>Total</td><td>100.0%</td><td>'+fmt(AUM)+'</td><td>'+fmt(altTot)+'</td></tr>';
+a+='<tr><td>Offshore total</td><td>'+(forTot/AUM*100).toFixed(1)+'%</td><td>'+fmt(forTot)+'</td><td></td></tr>';
+a+='<tr><td>Local total</td><td>'+((AUM-forTot)/AUM*100).toFixed(1)+'%</td><td>'+fmt(AUM-forTot)+'</td><td></td></tr>';
 document.getElementById("allocTbl").innerHTML=a;
 
 // Allocation by fund
-var fa='<tr><th>US$ M</th><th>Offshore eq.</th><th>Local eq.</th><th>Local FI</th><th>Offshore FI</th><th>Other</th><th>Total</th></tr>',ct=[0,0,0,0,0];
-funds.forEach(function(f){var s=feb[f[0]],v=f[1],oth=100-s.le-s.fe-s.lf-s.ff,r=[v*s.fe/100,v*s.le/100,v*s.lf/100,v*s.ff/100,v*oth/100];
- r.forEach(function(x,i){ct[i]+=x});
- fa+='<tr><td>Fund '+f[0]+'</td>'+r.map(function(x){return '<td>'+sgn(x)+'</td>'}).join("")+'<td>'+fmt(v)+'</td></tr>'});
-fa+='<tr class="tot"><td>Sum of funds</td>'+ct.map(function(x){return '<td>'+sgn(x)+'</td>'}).join("")+'<td>'+fmt(AUM)+'</td></tr>';
+var cols=[["Offshore eq.","fe"],["Local eq.","le"],["Local FI","lf"],["Offshore FI","ff"],["Derivatives","D"],["Other","O"]];
+var val=function(c,i){return c==="D"?P.ld[i]+P.fd[i]:c==="O"?P.lo[i]+P.fo[i]:P[c][i]};
+var fa='<tr><th>US$ M</th>'+cols.map(function(c){return '<th>'+c[0]+'</th>'}).join("")+'<th>Total</th><th>Offshore %</th></tr>';
+F.forEach(function(f,i){fa+='<tr><td>Fund '+f+'</td>'+cols.map(function(c){var v=usd(val(c[1],i));return '<td class="'+(v<0?"neg":"")+'">'+sgn(v)+'</td>'}).join("")+'<td>'+fmt(usd(P.tot[i]))+'</td><td>'+((P.fe[i]+P.ff[i]+P.fd[i]+P.fo[i])/P.tot[i]*100).toFixed(1)+'%</td></tr>'});
+fa+='<tr class="tot"><td>Total</td>'+cols.map(function(c){var v=usd(sum(F.map(function(_,i){return val(c[1],i)})));return '<td>'+sgn(v)+'</td>'}).join("")+'<td>'+fmt(AUM)+'</td><td>'+(forTot/AUM*100).toFixed(1)+'%</td></tr>';
+fa+='<tr><td>% of assets</td>'+cols.map(function(c){return '<td>'+(sum(F.map(function(_,i){return val(c[1],i)}))/T.tot*100).toFixed(1)+'%</td>'}).join("")+'<td>100%</td><td></td></tr>';
 document.getElementById("fundAllocTbl").innerHTML=fa;
 
 // Alternatives
-document.getElementById("altBig").textContent="≈ US$"+fmt(AUM*altPct/100)+"M";
-var al='<tr><th>Fund</th><th>% of fund</th><th>US$ M</th></tr>',tot=0;
-funds.forEach(function(f){var p=feb[f[0]].alt,v=f[1]*p/100;tot+=v;al+='<tr><td>Fund '+f[0]+'</td><td>'+p.toFixed(1)+'%</td><td>'+fmt(v)+'</td></tr>'});
-al+='<tr class="tot"><td>Sum of funds</td><td>'+(tot/AUM*100).toFixed(1)+'%</td><td>'+fmt(tot)+'</td></tr>';
-al+='<tr><td>Offshore equity alts</td><td>'+(febAltFEq/febAUM*100).toFixed(1)+'%</td><td>'+fmt(AUM*febAltFEq/febAUM)+'</td></tr>';
-al+='<tr><td>Offshore FI alts</td><td>'+(febAltFFI/febAUM*100).toFixed(1)+'%</td><td>'+fmt(AUM*febAltFFI/febAUM)+'</td></tr>';
-al+='<tr><td>Local alts</td><td>'+(febAltLocalTot/febAUM*100).toFixed(1)+'%</td><td>'+fmt(AUM*febAltLocalTot/febAUM)+'</td></tr>';
+document.getElementById("altBig").textContent="US$"+fmt(altTot)+"M";
+var al='<tr><th>Fund</th><th>Offshore</th><th>Local</th><th>Total</th><th>% of fund</th></tr>';
+F.forEach(function(f,i){var o=usd(ALT.feq[i]+ALT.ffi[i]),l=usd(ALT.leq[i]+ALT.lfi[i]);al+='<tr><td>Fund '+f+'</td><td>'+fmt(o)+'</td><td>'+fmt(l)+'</td><td>'+fmt(o+l)+'</td><td>'+((o+l)/usd(P.tot[i])*100).toFixed(1)+'%</td></tr>'});
+al+='<tr class="tot"><td>Total</td><td>'+fmt(usd(sum(ALT.feq)+sum(ALT.ffi)))+'</td><td>'+fmt(usd(sum(ALT.leq)+sum(ALT.lfi)))+'</td><td>'+fmt(altTot)+'</td><td>'+(altTot/AUM*100).toFixed(1)+'%</td></tr>';
+al+='<tr><td colspan="5" class="note">Offshore: equity-type '+fmt(usd(sum(ALT.feq)))+' (private equity, real estate, infrastructure), debt-type '+fmt(usd(sum(ALT.ffi)))+'. Local: equity-type '+fmt(usd(sum(ALT.leq)))+', debt-type '+fmt(usd(sum(ALT.lfi)))+'.</td></tr>';
 document.getElementById("altTbl").innerHTML=al;
 
 // FX position
-var fx='<tr><th>Fund</th><th>FX assets</th><th>Hedge</th><th>Net open, US$ M</th></tr>',lo=0,hi=0;
-funds.forEach(function(f){var g=f[1]*forShare[f[0]]/100,cell,hd;
- if(f[0]==="E"){var n=g*(1-1.21);lo+=n;hi+=n;hd="121%";cell='<td class="neg">'+sgn(n)+'</td>'}
- else{lo+=g*.45;hi+=g;hd="≤ 55%";cell='<td>'+fmt(g*.45)+' – '+fmt(g)+'</td>'}
- fx+='<tr><td>Fund '+f[0]+'</td><td>'+fmt(g)+'</td><td>'+hd+'</td>'+cell+'</tr>'});
-fx+='<tr class="tot"><td>Sum of funds</td><td>'+fmt(funds.reduce(function(s,f){return s+f[1]*forShare[f[0]]/100},0))+'</td><td></td><td>'+fmt(lo)+' – '+fmt(hi)+'</td></tr>';
-fx+='<tr><td>System foreign inv., Aug</td><td>'+fmt(AUM*.563)+'</td><td colspan="2" class="note">56.3% of assets; FX assets use Feb per-fund mix</td></tr>';
+document.getElementById("fxDuo").innerHTML='<div><div class="l">Foreign-currency assets</div><div class="big">'+fmt(forTot)+'</div></div><div><div class="l">US$ sold forward vs CLP</div><div class="big">'+fmt(-N.usdclpNet[9])+'</div></div>';
+var fx='<tr><th>Item</th><th>US$ M</th></tr>'+
+ '<tr><td>Foreign investment, 30 Sep</td><td>'+fmt(forTot)+'</td></tr>'+
+ '<tr><td>USD-CLP forwards: US$ sold</td><td>'+fmt((N.usdclpGross[9]-N.usdclpNet[9])/2)+'</td></tr>'+
+ '<tr><td>USD-CLP forwards: US$ bought</td><td>'+fmt((N.usdclpGross[9]+N.usdclpNet[9])/2)+'</td></tr>'+
+ '<tr><td>USD-CLP forwards: net sold, 31 Aug</td><td class="neg">'+sgn(N.usdclpNet[9])+'</td></tr>'+
+ '<tr class="tot"><td>Net long foreign currency vs CLP</td><td>≈ '+fmt(forTot+N.usdclpNet[9])+'</td></tr>'+
+ '<tr><td>Forward hedge, % of foreign assets</td><td>'+(-N.usdclpNet[9]/forTot*100).toFixed(1)+'%</td></tr>'+
+ '<tr><td>SP hedge ratio, June (hedgeable base)</td><td>40.9%</td></tr>'+
+ '<tr><td>&nbsp;&nbsp;US$ only, June</td><td>53.3%</td></tr>'+
+ '<tr><td>Net US$ sold, change since Nov 2025</td><td class="neg">'+sgn(N.usdclpNet[9]-N.usdclpNet[0])+'</td></tr>'+
+ '<tr><td colspan="2" class="note">The Superintendencia measures hedging against a narrower base (US$81.9bn of hedgeable investment in June, with US$33.5bn of hedging derivatives). The net position mixes 30 Sep assets with 31 Aug forwards.</td></tr>';
 document.getElementById("fxTbl").innerHTML=fx;
 
 // PV chart
-(function(){var W=860,H=300,L=56,R=10,T=18,B=34,pw=W-L-R,ph=H-T-B,mx=7000,mn=-8500,y=function(v){return T+(mx-v)/(mx-mn)*ph},s='';
- for(var t=-8000;t<=6000;t+=2000){s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(t)+'" y2="'+y(t)+'" stroke="var(--line)"'+(t===0?' stroke-width="1.5" style="stroke:var(--muted)"':'')+'/><text x="'+(L-6)+'" y="'+(y(t)+3)+'" text-anchor="end">'+sgn(t)+'</text>'}
- var gw=pw/pv.length,bw=gw*.24;
- pv.forEach(function(p,i){var cx=L+gw*(i+.5);
-  [[p.loc,"--c3",-bw*.55],[p.forg,"--c1",bw*.55]].forEach(function(b){if(b[0]==null)return;var x=cx+b[2]-bw/2,y0=y(0),y1=y(b[0]);
-   s+='<rect x="'+x+'" y="'+Math.min(y0,y1)+'" width="'+bw+'" height="'+Math.max(Math.abs(y1-y0),1)+'" fill="var('+b[1]+')"><title>'+p.d+' '+sgn(b[0])+'</title></rect>'});
-  if(p.loc==null)s+='<text x="'+(cx-bw*.55)+'" y="'+(y(0)-4)+'" text-anchor="middle">n/a</text>';
-  var yn=y(p.net);s+='<circle cx="'+cx+'" cy="'+yn+'" r="4.5" fill="var(--fg)"/><text class="val" x="'+(cx+bw*1.2)+'" y="'+(yn+4)+'">'+sgn(p.net)+'</text>';
-  s+='<text x="'+cx+'" y="'+(H-14)+'" text-anchor="middle">'+p.d+'</text><text x="'+cx+'" y="'+(H-3)+'" text-anchor="middle">'+(p.fx?"USDCLP "+p.fx.toFixed(2):"reported in US$")+'</text>'});
+(function(){var W=860,H=300,L=56,R=10,T0=14,B=40,pw=W-L-R,ph=H-T0-B,mx=6000,mn=-11000,y=function(v){return T0+(mx-v)/(mx-mn)*ph},s='';
+ for(var t=-10000;t<=6000;t+=2000){s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y(t)+'" y2="'+y(t)+'" style="stroke:'+(t===0?'var(--muted)':'var(--line)')+'"/><text x="'+(L-6)+'" y="'+(y(t)+3)+'" text-anchor="end">'+sgn(t)+'</text>'}
+ var gw=pw/M.length,bw=gw*.3,pts=[];
+ M.forEach(function(m,i){var cx=L+gw*(i+.5);
+  [[m.loc,"--c3",-bw*.52],[m.forg,"--c1",bw*.52]].forEach(function(b){var x=cx+b[2]-bw/2,y0=y(0),y1=y(b[0]);
+   s+='<rect x="'+x+'" y="'+Math.min(y0,y1)+'" width="'+bw+'" height="'+Math.max(Math.abs(y1-y0),1)+'" fill="var('+b[1]+')"><title>'+m[0]+' '+sgn(b[0])+'</title></rect>'});
+  pts.push(cx+','+y(m.net));
+  s+='<text x="'+cx+'" y="'+(H-22)+'" text-anchor="middle">'+m[0]+'</text><text x="'+cx+'" y="'+(H-9)+'" text-anchor="middle">'+m[1].toFixed(0)+'</text>'});
+ s+='<polyline points="'+pts.join(" ")+'" fill="none" style="stroke:var(--fg)" stroke-width="1.5"/>';
+ M.forEach(function(m,i){var cx=L+gw*(i+.5);s+='<circle cx="'+cx+'" cy="'+y(m.net)+'" r="3.5" fill="var(--fg)"><title>'+m[0]+' net '+sgn(m.net)+'</title></circle>'});
+ var e=M[M.length-1];s+='<text class="val" x="'+(L+gw*(M.length-.5)-6)+'" y="'+(y(e.net)+16)+'" text-anchor="end">'+sgn(e.net)+'</text>';
+ s+='<text class="val" x="'+(L+gw*.5)+'" y="'+(y(M[0].net)-8)+'" text-anchor="middle">'+sgn(M[0].net)+'</text>';
+ s+='<text x="'+(L-6)+'" y="'+(H-9)+'" text-anchor="end">USDCLP</text>';
  document.getElementById("pvChart").innerHTML=s})();
-document.getElementById("pvLegend").innerHTML='<span><i style="background:var(--c3)"></i>Local derivatives</span><span><i style="background:var(--c1)"></i>Foreign derivatives</span><span><i style="background:var(--fg);border-radius:50%"></i>Net PV</span>';
-var pt='<tr><th>Date</th><th>Local</th><th>Foreign</th><th>Net PV</th><th>% of assets</th><th>USDCLP</th><th>Coverage</th></tr>';
-var aumAt={"Sep 2025":null,"Feb 2026":224399634/FX.feb26,"Mar 2026":null,"Sep 2026":AUM_SEP};
-pv.forEach(function(p){var ab=aumAt[p.d];pt+='<tr><td>'+p.d+'</td><td>'+(p.loc==null?"n/a":sgn(p.loc))+'</td><td class="'+cls(p.forg)+'">'+sgn(p.forg)+'</td><td class="'+cls(p.net)+'"><b>'+sgn(p.net)+'</b></td><td>'+(ab?(p.net/ab*100).toFixed(1)+"%":"")+'</td><td>'+(p.fx?p.fx.toFixed(2):"—")+'</td><td class="note">'+p.cov+'. '+p.src+'</td></tr>'});
-pt+='<tr><td>Change, Sep 25 → Sep 26</td><td></td><td class="neg">'+sgn(-9100)+'</td><td class="neg"><b>'+sgn(-9100)+'</b></td><td></td><td></td><td class="note">Foreign rate swaps. CLP equivalent of the Sep 2026 PV: '+sgn(-7700*FX.sep26/1000)+' bn</td></tr>';
+document.getElementById("pvLegend").innerHTML='<span><i style="background:var(--c3)"></i>Local counterparties</span><span><i style="background:var(--c1)"></i>Foreign counterparties</span><span><i style="background:var(--fg);border-radius:50%"></i>Net PV</span>';
+var pt='<tr><th>Month-end</th><th>USDCLP</th><th>Local</th><th>Foreign</th><th>Net PV</th><th>% of assets</th><th>Monthly change</th></tr>';
+M.forEach(function(m,i){var ch=i?m.net-M[i-1].net:null;pt+='<tr><td>'+m[0]+'</td><td>'+m[1].toFixed(2)+'</td><td class="'+cls(m.loc)+'">'+sgn(m.loc)+'</td><td class="'+cls(m.forg)+'">'+sgn(m.forg)+'</td><td class="'+cls(m.net)+'"><b>'+sgn(m.net)+'</b></td><td>'+(m.net/m.aum*100).toFixed(1)+'%</td><td class="'+(ch==null?"":cls(ch))+'">'+(ch==null?"":sgn(ch))+'</td></tr>'});
+pt+='<tr class="tot"><td>Change, Sep 25 → Sep 26</td><td></td><td class="neg">'+sgn(last.loc-M[0].loc)+'</td><td class="neg">'+sgn(last.forg-M[0].forg)+'</td><td class="neg">'+sgn(last.net-M[0].net)+'</td><td></td><td></td></tr>';
 document.getElementById("pvTbl").innerHTML=pt;
 
-// FX derivatives book
-document.getElementById("fxDuo").innerHTML='<div><div class="l">FX turnover, Aug</div><div class="big">46,360</div></div><div><div class="l">Fund E hedge, Jul</div><div class="big">121%</div></div>';
-document.getElementById("fxDerTbl").innerHTML='<tr><th>Item</th><th>Value</th></tr>'+
- '<tr><td>Fund E USD sold forward, % of its US$ assets</td><td>47% Dec 25 → 121% Jul 26</td></tr>'+
- '<tr><td>Funds A–D USD sold forward</td><td>≤ 55% each</td></tr>'+
- '<tr><td>Fund E forwards P&amp;L, Dec–Aug</td><td class="neg">−0.28 pts</td></tr>'+
- '<tr><td>Fund E gain from USD rise, Dec–Aug</td><td class="pos">+0.41 pts</td></tr>'+
- '<tr><td>FX turnover, Jan–Aug 2026</td><td>'+fmt(45713+43834+43927+43946+34568+46194+53928+46360)+'</td></tr>'+
- '<tr><td>FX derivatives PV</td><td>not published</td></tr>'+
- '<tr><td colspan="2" class="note">Part of Fund E\'s rise reflects US$ collateral posted to swap counterparties, according to its manager, not only extra hedging. CLP weakened from 929.18 to 970.46 in September, which lowers the value of the funds\' short-USD forwards.</td></tr>';
+// PV by fund
+var pf='<tr><th>Fund</th><th>Local</th><th>Foreign</th><th>Net PV</th><th>% of fund</th></tr>';
+F.forEach(function(f,i){var l=usd(P.ld[i]),o=usd(P.fd[i]);pf+='<tr><td>Fund '+f+'</td><td class="neg">'+sgn(l)+'</td><td class="neg">'+sgn(o)+'</td><td class="neg"><b>'+sgn(l+o)+'</b></td><td>'+((P.ld[i]+P.fd[i])/P.tot[i]*100).toFixed(1)+'%</td></tr>'});
+pf+='<tr class="tot"><td>Total</td><td>'+sgn(usd(T.ld))+'</td><td>'+sgn(usd(T.fd))+'</td><td>'+sgn(usd(T.ld+T.fd))+'</td><td>'+((T.ld+T.fd)/T.tot*100).toFixed(1)+'%</td></tr>';
+pf+='<tr><td colspan="5" class="note">Funds C, D and E carry the largest losses relative to size. Bloomberg, citing the regulator, puts foreign interest-rate derivatives alone at −US$7.7bn in September.</td></tr>';
+document.getElementById("pvFundTbl").innerHTML=pf;
 
-// Rates derivatives book
-document.getElementById("rtDuo").innerHTML='<div><div class="l">Est. duration, US$ swaps</div><div class="big">≈ '+DUR.toFixed(1)+' yrs</div></div><div><div class="l">PV, Sep 2026</div><div class="big" style="color:var(--bad)">−7,700</div></div>';
-document.getElementById("rtTbl").innerHTML='<tr><th>Item</th><th>Value</th></tr>'+
- '<tr><td>Receive-fixed US$ swaps, notional</td><td>&gt; 230,000</td></tr>'+
- '<tr><td>Gross notional, all derivatives (Nov 2025)</td><td>&gt; 500,000</td></tr>'+
- '<tr><td>DV01, US$ rates (Sep 2025)</td><td>'+DV01+' per bp</td></tr>'+
- '<tr><td>DV01, local Cámara swaps</td><td>'+DV01_LOCAL+' per bp</td></tr>'+
- '<tr><td><b>Duration, US$ receive-fixed</b></td><td><b>≈ '+DUR.toFixed(1)+' years</b></td></tr>'+
- '<tr><td>Duration on gross notional</td><td>≈ '+(DV01/(GROSS_NOTIONAL/10000)).toFixed(1)+' years</td></tr>'+
- '<tr><td>PV change for +100 bp in US rates</td><td class="neg">≈ '+sgn(-DV01*100)+'</td></tr>'+
- '<tr><td>Rates turnover, Jan–Aug 2026</td><td>'+fmt(96683+122741+214361+194805+51284+46797+48413+57974)+'</td></tr>'+
- '<tr><td colspan="2" class="note">Duration = DV01 ÷ (notional × 0.0001). The US$9.1bn PV swing from Sep 2025 to Sep 2026 matches roughly '+Math.round(9100/DV01)+' bp of higher US swap rates at that DV01. Local duration needs the outstanding Cámara notional, which is not published. Resolution 549 caps potential derivatives exposure at 3% (A, B), 2.5% (C), 2% (D, E), with compliance due 5 Nov 2026.</td></tr>';
+// Currency pairs, Aug 2026
+var pairs=[["USD-CLP",73894],["USD-JPY",26456],["USD-EUR",16253],["USD-GBP",9044],["USD-CNY",7198],["USD-BRL",6663],["USD-MXN",3599],["Other pairs",23492]];
+var pr='<tr><th>Pair</th><th>Notional</th><th>Share</th></tr>';
+pairs.forEach(function(p){pr+='<tr><td>'+p[0]+'</td><td>'+fmt(p[1])+'</td><td>'+(p[1]/166600*100).toFixed(1)+'%</td></tr>'});
+pr+='<tr class="tot"><td>Total FX</td><td>166,600</td><td>100%</td></tr>';
+pr+='<tr><td>USD-CLP net US$ sold</td><td class="neg">'+sgn(N.usdclpNet[9])+'</td><td></td></tr>';
+pr+='<tr><td colspan="3" class="note">Net USD-CLP sales by remaining tenor: 3.4bn under 35 days, 11.2bn 36–95 days, 12.7bn 96–185 days, 9.6bn 186–370 days, 3.5bn over a year.</td></tr>';
+document.getElementById("pairTbl").innerHTML=pr;
 
-// Turnover chart, Jan 2025 – Aug 2026
-var M=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-var fxD=[31880,30882,29422,31322,33069,35257,33794,35407,38743,41204,40467,38139,45713,43834,43927,43946,34568,46194,53928,46360];
-var rtD=[75943,55944,99651,95549,86150,104865,98232,116961,124398,143891,71934,127434,96683,122741,214361,194805,51284,46797,48413,57974];
-var inD=[3189,497,2101,2656,2500,2094,2313,2433,2083,1696,3941,1825,5626,1100,4330,4977,3295,3284,2864,540];
-var lab=fxD.map(function(_,i){return M[i%12]+(i<12?" 25":" 26")});
-(function(){var W=860,H=280,L=52,B=28,T=10,R=8,mx=260000,pw=W-L-R,ph=H-T-B,bw=pw/fxD.length*.62,s='';
- for(var t=0;t<=260000;t+=65000){var y=T+ph-t/mx*ph;s+='<line x1="'+L+'" x2="'+(W-R)+'" y1="'+y+'" y2="'+y+'" stroke="var(--line)"/><text x="'+(L-6)+'" y="'+(y+3)+'" text-anchor="end">'+fmt(t/1000)+'k</text>'}
- fxD.forEach(function(v,i){var x=L+pw/fxD.length*(i+.5)-bw/2,h1=v/mx*ph,h2=rtD[i]/mx*ph,h3=inD[i]/mx*ph;
-  s+='<rect x="'+x+'" y="'+(T+ph-h1)+'" width="'+bw+'" height="'+h1+'" fill="var(--c3)"><title>'+lab[i]+' FX '+fmt(v)+'</title></rect>';
-  s+='<rect x="'+x+'" y="'+(T+ph-h1-h2)+'" width="'+bw+'" height="'+h2+'" fill="var(--c1)"><title>'+lab[i]+' Rates '+fmt(rtD[i])+'</title></rect>';
-  s+='<rect x="'+x+'" y="'+(T+ph-h1-h2-h3)+'" width="'+bw+'" height="'+h3+'" fill="var(--c5)"><title>'+lab[i]+' Inflation '+fmt(inD[i])+'</title></rect>';
-  if(i%2===0)s+='<text x="'+(x+bw/2)+'" y="'+(H-10)+'" text-anchor="middle">'+lab[i]+'</text>'});
- document.getElementById("chart").innerHTML=s})();
-document.getElementById("chartLegend").innerHTML='<span><i style="background:var(--c3)"></i>FX</span><span><i style="background:var(--c1)"></i>Interest rates</span><span><i style="background:var(--c5)"></i>Inflation (CLF-CLP)</span>';
-var tt='<tr><th>US$ M</th>',idx=[];for(var i=12;i<20;i++)idx.push(i);
-idx.forEach(function(i){tt+='<th>'+lab[i]+'</th>'});tt+='</tr>';
-var spc=[19405,24635,51291,40886,6946,5982,7511,2378],fr=[77278,98106,163071,153918,44338,40815,40902,55596];
-[["FX",fxD],["Interest rates",rtD],["Inflation",inD]].forEach(function(r){tt+='<tr><td>'+r[0]+'</td>'+idx.map(function(i){return '<td>'+fmt(r[1][i])+'</td>'}).join("")+'</tr>'});
-tt+='<tr><td>&nbsp;&nbsp;Rates, local (SPC-CLP)</td>'+spc.map(function(v){return '<td>'+fmt(v)+'</td>'}).join("")+'</tr>';
-tt+='<tr><td>&nbsp;&nbsp;Rates, foreign</td>'+fr.map(function(v){return '<td>'+fmt(v)+'</td>'}).join("")+'</tr>';
-tt+='<tr class="tot"><td>Total</td>'+idx.map(function(i){return '<td>'+fmt(fxD[i]+rtD[i]+inD[i])+'</td>'}).join("")+'</tr>';
+// Notional table
+var nt='<tr><th>US$ M</th>'+NL.map(function(l){return '<th>'+l+'</th>'}).join("")+'</tr>';
+var row=function(lbl,arr,c,b){return '<tr'+(b?' class="tot"':'')+'><td>'+lbl+'</td>'+arr.map(function(v){return '<td class="'+(c&&v<0?"neg":"")+'">'+sgn(v)+'</td>'}).join("")+'</tr>'};
+nt+='<tr><td colspan="11" class="note"><b>FX</b></td></tr>';
+nt+=row("USD-CLP, gross",N.usdclpGross)+row("USD-CLP, net US$ sold",N.usdclpNet,1)+row("Foreign-currency pairs (no CLP)",N.fxMEME);
+nt+='<tr><td colspan="11" class="note"><b>US$ interest-rate swaps</b></td></tr>';
+nt+=row("Receive fixed",N.frRecv)+row("Pay fixed",N.frPay)+row("Net receive fixed",N.frRecv.map(function(v,i){return v-N.frPay[i]}),0,1);
+nt+='<tr><td colspan="11" class="note"><b>Peso swaps (Cámara), converted at month-end USDCLP</b></td></tr>';
+nt+=row("Gross notional",N.spc)+row("Net receive fixed",SPC.le2Net.map(function(v,i){return -(v+SPC.gt2Net[i])*1000/NFX[i]}),0,1);
+nt+='<tr><td colspan="11" class="note"><b>Inflation (UF-CLP)</b></td></tr>'+row("Gross notional",N.infl);
+document.getElementById("notTbl").innerHTML=nt;
+
+// US$ swaps
+document.getElementById("usDuo").innerHTML='<div><div class="l">Est. duration, net position</div><div class="big">'+durLo.toFixed(1)+'–'+durHi.toFixed(1)+'</div></div><div><div class="l">Est. DV01, US$M per bp</div><div class="big">'+fmt(dvLo)+'–'+fmt(dvHi)+'</div></div>';
+document.getElementById("usTbl").innerHTML='<tr><th>Item, 31 Aug 2026</th><th>Value</th></tr>'+
+ '<tr><td>Receive fixed</td><td>'+fmt(N.frRecv[9])+'</td></tr>'+
+ '<tr><td>Pay fixed</td><td>'+fmt(N.frPay[9])+'</td></tr>'+
+ '<tr class="tot"><td>Net receive fixed</td><td>'+fmt(netN)+'</td></tr>'+
+ '<tr><td>Net, Mar 2026</td><td>'+fmt(N.frRecv[4]-N.frPay[4])+'</td></tr>'+
+ '<tr><td>Loss for +100 bp in US rates</td><td class="neg">≈ '+fmt(dvLo*100)+' – '+fmt(dvHi*100)+'</td></tr>'+
+ '<tr><td colspan="2" class="note">Method: Citi put the funds\' US$ rate DV01 at US$'+DV01_25+'M per bp in Sep 2025, when receive and pay notionals were nearly equal (~US$'+fmt(N.frRecv[0]/1000)+'bn each). That implies the receive-fixed swaps were about '+gap.toFixed(1)+' years longer than the pay-fixed ones. Applying that gap to August notionals, with pay-fixed swaps assumed at 0.5–1.5 years, gives the range shown. Since April the funds cut pay-fixed swaps by US$'+fmt((N.frPay[5]-N.frPay[9])/1000)+'bn, which raised their net rate exposure while lowering gross notional.</td></tr>';
+
+// Peso swaps
+document.getElementById("clDuo").innerHTML='<div><div class="l">Est. duration, net position</div><div class="big">≈ '+clDur.toFixed(1)+'</div></div><div><div class="l">Est. DV01, US$M per bp</div><div class="big">'+(clDV(4)*1000/929.18).toFixed(1)+'</div></div>';
+document.getElementById("clTbl").innerHTML='<tr><th>CLP bn, 31 Aug 2026</th><th>Up to 2y</th><th>Over 2y</th></tr>'+
+ '<tr><td>Gross notional</td><td>'+fmt(SPC.le2Gross)+'</td><td>'+fmt(SPC.gt2Gross)+'</td></tr>'+
+ '<tr><td>Net receive fixed</td><td>'+fmt(-SPC.le2Net[9])+'</td><td>'+fmt(-SPC.gt2Net[9])+'</td></tr>'+
+ '<tr><td>Net, Nov 2025</td><td class="neg">'+sgn(-SPC.le2Net[0])+'</td><td>'+fmt(-SPC.gt2Net[0])+'</td></tr>'+
+ '<tr class="tot"><td>Net receive fixed, US$ M</td><td colspan="2">'+fmt(clNet*1000/929.18)+'</td></tr>'+
+ '<tr><td colspan="3" class="note">Method: assumed average duration of 1 year for the up-to-2-year bucket and 4 years for the over-2-year bucket (range '+clDurLo.toFixed(1)+'–'+clDurHi.toFixed(1)+' years for 3–6). The short bucket flipped from paying to receiving fixed in May 2026. A negative value in Nov 2025 means the funds were paying fixed.</td></tr>';
+
+// Turnover, Jan–Aug 2026
+var TL=["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26"];
+var fxD=[45713,43834,43927,43946,34568,46194,53928,46360],rtD=[96683,122741,214361,194805,51284,46797,48413,57974],inD=[5626,1100,4330,4977,3295,3284,2864,540];
+var tt='<tr><th>US$ M</th>'+TL.map(function(l){return '<th>'+l+'</th>'}).join("")+'</tr>';
+tt+=row("FX",fxD)+row("Interest rates",rtD)+row("Inflation",inD)+row("Total",fxD.map(function(v,i){return v+rtD[i]+inD[i]}),0,1);
 document.getElementById("turnTbl").innerHTML=tt;
 </script>
