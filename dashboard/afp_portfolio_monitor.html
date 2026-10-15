@@ -161,6 +161,12 @@ svg text.val{fill:var(--fg);font-size:11px}
 </div>
 
 <section class="panel">
+  <h2>Derivatives stress-loss limits <span class="tag">LED, from 5 Nov 2026</span></h2>
+  <p class="sub">The Superintendencia caps each fund's estimated derivatives loss under a standard stress scenario covering interest rates and FX. The limit is a percentage of the fund; the US$ amount below applies it to 30 Sep 2026 assets. Funds' actual stress-loss usage is not published.</p>
+  <div class="scroll"><table id="ledTbl"></table></div>
+</section>
+
+<section class="panel">
   <h2>Derivatives turnover <span class="tag">monto transado</span></h2>
   <p class="sub">Monthly traded amounts, US$ millions (Banco Central DER_RES_SUS_02). These are trading flows, not positions.</p>
   <div class="scroll"><table id="turnTbl"></table></div>
@@ -172,8 +178,9 @@ svg text.val{fill:var(--fg);font-size:11px}
     <li>No official DV01 is published for the pension funds' swaps. The US$ swap duration rests on a Citi estimate from Sep 2025; the peso swap duration rests on assumed average tenors within the Banco Central's two buckets.</li>
     <li>Hedge ratios by fund are not published monthly. The system figure (40.9%, June) is from the Superintendencia's quarterly report.</li>
     <li>Derivatives value is split by counterparty location, not by FX versus rates.</li>
+    <li>Stress-loss limits (LED) are the regulatory caps. The scenario's shock sizes and each fund's usage are not public.</li>
   </ul>
-  <p class="src">Sources: <a href="https://spensiones.cl/portal/institucional/594/articles-17168_recurso_1.pdf">SP monthly report, Sep 2026</a> and earlier monthly reports (Sep 2025–Aug 2026) · <a href="https://spensiones.cl/portal/institucional/594/articles-17132_recurso_1.pdf">SP quarterly investment report, Q2 2026</a> · Banco Central de Chile BDE: <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_RES_POS_02/638670943827780640">DER_RES_POS_02</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_PPRYSC_01/638671060253736609">DER_FP_PPRYSC_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_PPM_01/638671060919490958">DER_FP_PPM_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_TAS_FP_STO_01/638690071945166200">DER_TAS_FP_STO_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_SPC_STO_01/638690068187754688">DER_FP_SPC_STO_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_RES_SUS_02/638670944247282966">DER_RES_SUS_02</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_TIPO_CAMBIO/MN_TIPO_CAMBIO4/DOLAR_OBS_ADO">dólar observado</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/regulador-chileno-busca-frenar-auge-de-derivados-que-han-disparado-rentabilidad-de-las-afp/">Bloomberg Línea (Citi DV01)</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/fondos-de-pensiones-de-chile-afrontan-perdidas-de-us7700-millones-por-apuestas-a-tasas-de-eeuu/">Bloomberg Línea (US$7.7bn)</a></p>
+  <p class="src">Sources: <a href="https://spensiones.cl/portal/institucional/594/articles-17168_recurso_1.pdf">SP monthly report, Sep 2026</a> and earlier monthly reports (Sep 2025–Aug 2026) · <a href="https://spensiones.cl/portal/institucional/594/articles-17132_recurso_1.pdf">SP quarterly investment report, Q2 2026</a> · <a href="https://www.spensiones.cl/portal/institucional/594/w3-article-17012.html">SP derivatives limits (LED, RCL), Apr 2026</a> · <a href="https://www.df.cl/senal-df/swaps-de-tasas-de-las-afp-les-cuestan-mas-de-us-11-000-millones-a-los">DF (LED phase-in)</a> · Banco Central de Chile BDE: <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_RES_POS_02/638670943827780640">DER_RES_POS_02</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_PPRYSC_01/638671060253736609">DER_FP_PPRYSC_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_PPM_01/638671060919490958">DER_FP_PPM_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_TAS_FP_STO_01/638690071945166200">DER_TAS_FP_STO_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_FP_SPC_STO_01/638690068187754688">DER_FP_SPC_STO_01</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_DERYSPOT/MN_DERYSPOT/DER_RES_SUS_02/638670944247282966">DER_RES_SUS_02</a>, <a href="https://si3.bcentral.cl/Siete/ES/Siete/Cuadro/CAP_TIPO_CAMBIO/MN_TIPO_CAMBIO4/DOLAR_OBS_ADO">dólar observado</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/regulador-chileno-busca-frenar-auge-de-derivados-que-han-disparado-rentabilidad-de-las-afp/">Bloomberg Línea (Citi DV01)</a> · <a href="https://www.bloomberglinea.com/latinoamerica/chile/fondos-de-pensiones-de-chile-afrontan-perdidas-de-us7700-millones-por-apuestas-a-tasas-de-eeuu/">Bloomberg Línea (US$7.7bn)</a></p>
 </section>
 </div>
 
@@ -366,6 +373,16 @@ document.getElementById("clTbl").innerHTML='<tr><th>US$ M</th><th>Up to 2y</th><
  '<tr><td>Net receive fixed, Nov 2025</td><td class="neg">'+sgn(u(-SPC.le2Net[0],929.14))+'</td><td>'+fmt(u(-SPC.gt2Net[0],929.14))+'</td><td>'+sgn(u(-(SPC.le2Net[0]+SPC.gt2Net[0]),929.14))+'</td></tr>'+
  '<tr><td>Loss for +100 bp in CLP rates</td><td colspan="3" class="neg">≈ '+fmt(clDV(4)*1000/929.18*100)+'</td></tr>'+
  '<tr><td colspan="4" class="note">Converted at month-end USDCLP (929.18 Aug 2026, 929.14 Nov 2025). The Banco Central reports these swaps in miles de millones de pesos (10^9 CLP); its own US$ summary table matches the converted totals. Duration method: assumed average duration of 1 year for the up-to-2-year bucket and 4 years for the over-2-year bucket (range '+clDurLo.toFixed(1)+'–'+clDurHi.toFixed(1)+' years for 3–6). The short bucket flipped from paying to receiving fixed in May 2026; a negative value means the funds were paying fixed.</td></tr>';
+
+// LED stress-loss limits (SP Resolución 549 / NCG 362, 9 Apr 2026), % of each fund
+var LED=[3,3,2.5,2,2];
+var lt='<tr><th>Fund</th><th>Assets, US$ M</th><th>Limit, % of fund</th><th>Max stress loss, US$ M</th><th>Derivatives value now, % of fund</th></tr>';
+F.forEach(function(f,i){var a=usd(P.tot[i]),dv=P.ld[i]+P.fd[i];
+ lt+='<tr><td>'+f+'</td><td>'+fmt(a)+'</td><td>'+LED[i].toFixed(1)+'%</td><td>'+fmt(a*LED[i]/100)+'</td><td class="'+cls(dv)+'">'+sgn(dv/P.tot[i]*100,1)+'%</td></tr>'});
+var ledT=sum(P.tot.map(function(v,i){return usd(v)*LED[i]/100}));
+lt+='<tr class="tot"><td>All funds</td><td>'+fmt(AUM)+'</td><td>'+(ledT/AUM*100).toFixed(1)+'%</td><td>'+fmt(ledT)+'</td><td class="'+cls(T.ld+T.fd)+'">'+sgn((T.ld+T.fd)/T.tot*100,1)+'%</td></tr>';
+lt+='<tr><td colspan="5" class="note">The last column is today\'s market value of all derivatives, not the stress measure, and is shown only for scale. A separate liquidity coverage ratio (RCL) must stay at or above 100% for each fund and currency group: liquid assets against potential cash needs from derivatives. New trades must be cleared centrally or covered by bilateral collateral (NCG 362). Phase-in: excess over the limit was capped at 40% from August, stepping down to 20% and 10% before full compliance on 5 Nov 2026.</td></tr>';
+document.getElementById("ledTbl").innerHTML=lt;
 
 // Turnover, Jan–Aug 2026
 var TL=["Jan 26","Feb 26","Mar 26","Apr 26","May 26","Jun 26","Jul 26","Aug 26"];
