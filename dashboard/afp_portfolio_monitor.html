@@ -1,3 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AFP Portfolio Monitor</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;700&display=swap">
 <style>
@@ -16,7 +21,7 @@
   --bg:#0e161d; --surface:#16212b; --fg:#e6edf3; --muted:#93a4b3; --line:#27363f;
   --accent:#58b4d1; --c1:#58b4d1; --c2:#2c7f9c; --c3:#d3ae52; --c4:#8a6d1f; --c5:#7a8794;
   --good:#52c08a; --warn:#e0a54a; --warnbg:#2b2312; --bad:#ef7b72; color-scheme:dark}
-body{background:var(--bg);color:var(--fg);font-family:var(--display);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:24px}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--display);font-size:14px;line-height:1.5;padding-inline:16px;padding-block:24px}
 .wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:24px}
 header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;align-items:flex-end;border-bottom:2px solid var(--fg);padding-bottom:12px}
 h1{font-size:26px;margin:0;letter-spacing:-.01em;text-wrap:balance}
@@ -63,7 +68,8 @@ svg text.val{fill:var(--fg);font-size:11px}
 .duo div{border-top:1px solid var(--line);padding-top:6px;min-width:0}
 .duo .l{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 </style>
-
+</head>
+<body>
 <div class="wrap">
 <header>
   <div>
@@ -239,9 +245,9 @@ var kp=[["Total fund assets","US$"+fmt(AUM)+"M","30 Sep 2026 at 970.46",""],
  ["Local fixed income","US$"+fmt(usd(T.lf))+"M",(T.lf/T.tot*100).toFixed(1)+"% of assets",""],
  ["Offshore fixed income","US$"+fmt(usd(T.ff))+"M",(T.ff/T.tot*100).toFixed(1)+"% of assets",""],
  ["Alternative assets","US$"+fmt(altTot)+"M",(altTot/AUM*100).toFixed(1)+"% of assets",""],
- ["Derivatives PV","−US$"+fmt(-last.net)+"M",(last.net/AUM*100).toFixed(1)+"% of assets · +US$"+fmt(M[0].net)+"M a year earlier","neg"],
+ ["Derivatives PV","−US$"+fmt(-last.net)+"M",sgn(last.net/AUM*100,1)+"% of assets · +US$"+fmt(M[0].net)+"M a year earlier","neg"],
  ["Net FX exposure","≈ US$"+fmt(forTot+N.usdclpNet[9])+"M","Foreign assets less US$"+fmt(-N.usdclpNet[9])+"M sold forward",""],
- ["US$ swap duration","≈ "+durLo.toFixed(0)+"–"+durHi.toFixed(0)+" yrs","On US$"+fmt(netN/1000)+"bn net receive-fixed",""],
+ ["US$ swap duration","≈ "+durLo.toFixed(1)+"–"+durHi.toFixed(1)+" yrs","On US$"+fmt(netN/1000)+"bn net receive-fixed",""],
  ["Peso swap duration","≈ "+clDur.toFixed(1)+" yrs","On US$"+fmt(clNet/929.18,1)+"bn net receive-fixed",""]];
 document.getElementById("kpis").innerHTML=kp.map(function(k){return '<div class="kpi"><div class="l">'+k[0]+'</div><div class="v '+k[3]+'">'+k[1]+'</div><div class="n">'+k[2]+'</div></div>'}).join("");
 
@@ -315,7 +321,7 @@ document.getElementById("pvTbl").innerHTML=pt;
 
 // PV by fund
 var pf='<tr><th>Fund</th><th>Local</th><th>Foreign</th><th>Net PV</th><th>% of fund</th></tr>';
-F.forEach(function(f,i){var l=usd(P.ld[i]),o=usd(P.fd[i]);pf+='<tr><td>Fund '+f+'</td><td class="neg">'+sgn(l)+'</td><td class="neg">'+sgn(o)+'</td><td class="neg"><b>'+sgn(l+o)+'</b></td><td>'+((P.ld[i]+P.fd[i])/P.tot[i]*100).toFixed(1)+'%</td></tr>'});
+F.forEach(function(f,i){var l=usd(P.ld[i]),o=usd(P.fd[i]);pf+='<tr><td>Fund '+f+'</td><td class="'+cls(l)+'">'+sgn(l)+'</td><td class="'+cls(o)+'">'+sgn(o)+'</td><td class="'+cls(l+o)+'"><b>'+sgn(l+o)+'</b></td><td>'+((P.ld[i]+P.fd[i])/P.tot[i]*100).toFixed(1)+'%</td></tr>'});
 pf+='<tr class="tot"><td>Total</td><td>'+sgn(usd(T.ld))+'</td><td>'+sgn(usd(T.fd))+'</td><td>'+sgn(usd(T.ld+T.fd))+'</td><td>'+((T.ld+T.fd)/T.tot*100).toFixed(1)+'%</td></tr>';
 pf+='<tr><td colspan="5" class="note">Funds C, D and E carry the largest losses relative to size. Bloomberg, citing the regulator, puts foreign interest-rate derivatives alone at −US$7.7bn in September.</td></tr>';
 document.getElementById("pvFundTbl").innerHTML=pf;
@@ -368,3 +374,5 @@ var tt='<tr><th>US$ M</th>'+TL.map(function(l){return '<th>'+l+'</th>'}).join(""
 tt+=row("FX",fxD)+row("Interest rates",rtD)+row("Inflation",inD)+row("Total",fxD.map(function(v,i){return v+rtD[i]+inD[i]}),0,1);
 document.getElementById("turnTbl").innerHTML=tt;
 </script>
+</body>
+</html>
