@@ -1,0 +1,79 @@
+<header class="cb-head">
+  <div>
+    <h1>AFP Dashboard</h1>
+    <p>Chilean pension funds: today's portfolio (Fondos A–E) and the move to generational funds on 1 April 2027. One offline file; no internet needed.</p>
+  </div>
+  <div style="font-size:12px;color:var(--color-fg-muted)">Built 22 Oct 2026 · portfolio at 30 Sep 2026</div>
+</header>
+<nav class="cb-nav">
+  <a href="#fxreg">FX position under the new regime</a>
+  <a href="#mon">Portfolio monitor</a>
+  <a href="#fgx">Generational funds transition</a>
+  <a href="#fx">Currency hedging by age</a>
+</nav>
+
+<section class="fg-sec" id="fxreg">
+  <h2 style="font-family:var(--font-anthropic-serif);font-weight:400;font-size:28px">Does today's FX position have to change? <span class="fg-tag">estimate</span></h2>
+  <p class="cb-verdict" id="fr-verdict">—</p>
+
+  <div class="fg-kpis">
+    <div class="fg-kpi"><span class="lab">Net long foreign currency today</span><span class="num" id="fr-k-net">—</span><span class="sub" id="fr-k-net-s">—</span></div>
+    <div class="fg-kpi"><span class="lab">US$ sold forward against pesos</span><span class="num" id="fr-k-h">—</span><span class="sub" id="fr-k-h-s">—</span></div>
+    <div class="fg-kpi"><span class="lab">Minimum hedge, today's rule</span><span class="num" id="fr-k-old">—</span><span class="sub">US$bn, at most 50% of foreign-currency debt unhedged (estimate, upper bound)</span></div>
+    <div class="fg-kpi"><span class="lab">Minimum hedge, new regime</span><span class="num" id="fr-k-new">—</span><span class="sub" id="fr-k-new-s">—</span></div>
+    <div class="fg-kpi"><span class="lab">Extra hedging needed</span><span class="num" id="fr-k-x">—</span><span class="sub">US$bn, no age group falls short</span></div>
+    <div class="fg-kpi"><span class="lab">Hedges above the new minimum</span><span class="num" id="fr-k-free">—</span><span class="sub" id="fr-k-free-s">—</span></div>
+  </div>
+
+  <div class="fg-grid">
+    <div class="fg-card">
+      <h3>Hedges held vs required</h3>
+      <p class="note">US$bn. Held: Banco Central, net US$ sold against pesos, 31 Aug 2026. Required: estimates on 30 Sep 2026 balances. Dashed line: foreign-currency debt (excluding private debt).</p>
+      <div id="fr-bars"></div>
+    </div>
+    <div class="fg-card">
+      <h3>What the hedging rule covers</h3>
+      <p class="note">Only foreign-currency <i>debt</i> has a hedging limit. Foreign equity and alternatives can stay unhedged, today and under the new regime.</p>
+      <div class="fg-tablewrap"><table class="fg-table fg-wrap">
+        <thead><tr><th></th><th>Today (multifondos)</th><th>Generational funds (Res. 1195)</th></tr></thead>
+        <tbody>
+          <tr><td><b>What is counted</b></td><td>Investment-grade foreign-currency debt, per currency, only where a currency is at least 1% of the fund</td><td>All foreign-currency debt of each fund, summed across currencies, no 1% threshold</td></tr>
+          <tr><td><b>Maximum unhedged</b></td><td>50% in every fund (A–E)</td><td>Stages 1–4 (ages ≤50): no limit. Stage 5 (51–55): 50%. Stages 6–10 (56+): 20%, but 50% for the first 12 months (Apr 2027–Mar 2028)</td></tr>
+          <tr><td><b>Total unhedged FX</b></td><td>No cap. The old fund caps (A 50%, B 40%, C 35%, D 25%, E 15% of the fund) lapsed in Nov 2012</td><td>No cap</td></tr>
+          <tr><td><b>Cross-currency forwards</b></td><td>Needed to hedge each currency separately (e.g. EUR debt)</td><td>Not needed for the limit: a US$ hedge counts against debt in any currency</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <div class="fg-card">
+    <h3>By age group at the switch <span class="fg-tag">estimate</span></h3>
+    <p class="note">US$bn. Each age group carries its share of every fund's forwards into its new fund (in-kind transfer). Hedges are rescaled to the Banco Central's 31 Aug total; foreign-currency debt at the switch uses the regime's Annex 1 midpoints on 30 Sep 2026 balances.</p>
+    <div class="fg-tablewrap"><table class="fg-table" id="fr-age">
+      <thead><tr><th>Age 2026</th><th>Stage</th><th>Hedges carried in</th><th>FC debt at switch</th><th>Max unhedged</th><th>Min hedge, first 12m</th><th>Min hedge, from Apr 2028</th><th>Cushion</th><th>Extra needed</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </div>
+
+    <div class="fg-card">
+      <h3>What could change <span class="fg-tag">scenarios</span></h3>
+      <p class="note">Nothing forces these moves. They show the size of the dollar buying if AFPs used the room the new rule gives them. Most forwards are short (US$14.6bn of net US$ sales mature within 95 days), so hedges can be reduced by not rolling them.</p>
+      <div class="fg-tablewrap"><table class="fg-table" id="fr-scen">
+        <thead><tr><th>Scenario</th><th>US$ bought vs CLP</th><th>Hedges left</th><th>Net long FX</th><th>Hedged % of foreign assets</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+    <div class="fg-card">
+      <h3>Reconciling with the "Currency hedging" section</h3>
+      <p class="note">That section (further down) uses the SP's detailed portfolio for 29 May 2026; this one uses the monitor's figures (SP Sep 2026 holdings, Banco Central Aug 2026 forwards).</p>
+      <div class="fg-tablewrap"><table class="fg-table fg-wrap" id="fr-rec">
+        <thead><tr><th>Measure</th><th>Source, date</th><th style="text-align:right">US$bn</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+
+  <div class="fg-card">
+    <h3>Why the figures differ</h3>
+    <ul class="cb-list" id="fr-why"></ul>
+  </div>
+</section>
