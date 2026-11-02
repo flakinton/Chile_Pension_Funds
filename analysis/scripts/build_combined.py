@@ -50,6 +50,14 @@ mon_js = '(function(){\n' + mon_js + '\nwindow.MON={FX:FX,AUM:AUM,forTot:forTot,
 
 new_css = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'combined_fx.css')).read()
 new_html = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'combined_fx.html')).read()
+ofs_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'offshore_fi')
+ofs_css = open(os.path.join(ofs_dir, 'ofs.css')).read()
+ofs_css += ('#dash-root #ofs{--bg:var(--color-bg);--surface:var(--color-panel);--fg:var(--color-fg);--muted:var(--color-fg-muted);'
+            '--line:var(--color-border-line);--display:var(--font-anthropic-sans);--radius:var(--cds-radius);margin:32px 0}\n'
+            '#ofs .o-wrap{max-width:none}\n#dash-root #ofs .cls{position:static}\n')
+ofs_html = open(os.path.join(ofs_dir, 'ofs.html')).read()
+ofs_js = open(os.path.join(ofs_dir, 'ofs.js')).read()
+ofs_data = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'dashdata', 'ofs_data.json')).read()
 new_js = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'combined_fx.js')).read()
 
 page = f'''<!doctype html>
@@ -58,7 +66,8 @@ page = f'''<!doctype html>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>{fg_style}
 {mon_css}
-{new_css}</style>
+{new_css}
+{ofs_css}</style>
 {fg_scripts}
 </head><body><div id="dash-root">
 {new_html}
@@ -66,11 +75,16 @@ page = f'''<!doctype html>
 {mon_body}
 </div>
 <script>{mon_js}</script>
+<div id="ofs">
+{ofs_html}
+</div>
+<script>window.OFS_DATA={ofs_data};</script>
+<script>{ofs_js}</script>
 <div id="fgx">
 {fg_body}
 </div>
 <script>{new_js}</script>
-<p class="cb-foot">Combined offline copy built 22 Oct 2026 from afp_portfolio_monitor.html (SP and Banco Central data, Sep/Aug 2026) and generational_funds_transition.html (SP data, May–Jun 2026). Numbers marked as estimates are our calculations, not published figures.</p>
+<p class="cb-foot">Combined offline copy built 22 Oct 2026 from afp_portfolio_monitor.html (SP and Banco Central data, Sep/Aug 2026) and generational_funds_transition.html (SP data, May–Jun 2026). Offshore holdings by issuer added 1 Nov 2026 (SP cartera desagregada, May 2026). Numbers marked as estimates are our calculations, not published figures.</p>
 </div></body></html>
 '''
 open(f'{D}/afp_dashboard.html', 'w').write(page)

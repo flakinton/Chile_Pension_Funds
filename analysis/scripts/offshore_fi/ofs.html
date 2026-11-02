@@ -1,0 +1,95 @@
+<div class="o-wrap">
+<div class="o-head">
+  <div>
+    <h2 class="o-title">Offshore holdings by issuer</h2>
+    <div class="stamp">Chilean pension funds A–E · every foreign holding except FX derivatives · US$ millions · portfolio at 29 May 2026</div>
+  </div>
+  <div class="stamp">Source: SP cartera desagregada (published 12 Jun 2026)</div>
+</div>
+
+<div class="cls">
+  <div class="seg" id="ofs-cls">
+    <button data-v="ALL" class="on">All offshore</button><button data-v="FI">Fixed income</button><button data-v="EQ">Equity</button><button data-v="ALT">Alternatives</button>
+  </div>
+  <span class="cnt" id="ofs-clsnote"></span>
+</div>
+
+<section class="kpis" id="ofs-kpis"></section>
+
+<section class="panel" id="ofs-mix-p">
+  <h2>Asset class mix</h2>
+  <p class="sub">Offshore holdings by asset class, AFP and fund. Fixed income includes private-debt vehicles, which SP files under alternatives.</p>
+  <div class="scroll"><table id="ofs-mix"></table></div>
+</section>
+
+<section class="grid2">
+  <div class="panel">
+    <h2>How they hold it</h2>
+    <p class="sub" id="ofs-route-sub"></p>
+    <div class="scroll"><table id="ofs-route"></table></div>
+  </div>
+  <div class="panel">
+    <h2 id="ofs-strat-h">Strategy mix</h2>
+    <p class="sub" id="ofs-strat-sub"></p>
+    <div class="scroll"><table id="ofs-strat"></table></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2>By AFP and fund</h2>
+  <p class="sub">US$ millions. Switch between AFPs and fund types.</p>
+  <div class="controls"><div class="seg" id="ofs-dim"><button data-v="afp" class="on">By AFP</button><button data-v="fund">By fund A–E</button></div></div>
+  <div class="scroll"><table id="ofs-dimt"></table></div>
+</section>
+
+<section class="panel" id="ofs-direct-p">
+  <h2 id="ofs-direct-h">Direct holdings: issuers</h2>
+  <p class="sub" id="ofs-direct-sub"></p>
+  <div class="scroll tall"><table id="ofs-direct"></table></div>
+</section>
+
+<section class="grid2" id="ofs-yt">
+  <div class="panel">
+    <h2>Yields on direct bonds</h2>
+    <p class="sub">Average valuation rate (% a year) by instrument type and currency, as published by SP. Weight is the share of total pension-fund assets.</p>
+    <div class="controls"><select id="ofs-yf"></select></div>
+    <div class="scroll"><table id="ofs-yield"></table></div>
+  </div>
+  <div class="panel">
+    <h2>Average term</h2>
+    <p class="sub">Average term to maturity of direct foreign bonds, in years (SP Cuadro 9, reported in days). This is term to maturity, not duration.</p>
+    <div class="scroll"><table id="ofs-term"></table></div>
+  </div>
+</section>
+
+<section class="panel">
+  <h2 id="ofs-funds-h">Funds and managers</h2>
+  <p class="sub" id="ofs-funds-sub"></p>
+  <div class="controls"><select id="ofs-fs"></select></div>
+  <div class="scroll tall"><table id="ofs-funds"></table></div>
+</section>
+
+<section class="panel">
+  <h2>Full holdings list</h2>
+  <p class="sub">One row per ISIN (or per manager, for vehicles without an ISIN). Search by issuer, ISIN, currency or strategy. The CSV has every row with the split by AFP and fund.</p>
+  <div class="controls">
+    <input id="ofs-q" type="search" placeholder="Search issuer, ISIN, currency…">
+    <select id="ofs-froute"></select>
+    <select id="ofs-fafp"></select>
+    <button id="ofs-csv">Download CSV</button>
+    <span class="cnt" id="ofs-cnt"></span>
+  </div>
+  <div class="scroll tall"><table id="ofs-all"></table></div>
+</section>
+
+<section class="alert" id="ofs-alert"></section>
+
+<section class="src">
+  <ul>
+    <li>SP, <i>Cartera agregada y desagregada de los Fondos de Pensiones</i>, May 2026 XML: Cuadro 21 (foreign investments by issuer, instrument and AFP), Cuadro 3 (valuation rates by instrument type), Cuadro 9 (average term).</li>
+    <li>Fixed income: EBC, BEE, TBE, TBI, BSE, BCE, ELN, CDPE (direct), CMED, CIED, ETFB, VDPE, CFID, CFMD (funds and vehicles). Equity: AEE, ADR (direct), CMEV, ETFA, CFIV (funds). Alternatives: VCPE, CCPE (private equity), VIPE (infrastructure), VRPE (real estate), CFIV filed by SP as alternatives. Bank accounts abroad (CC3) are shown under All only. FX forwards and swaps are left out.</li>
+    <li>Strategy, region and sector labels come from fund names and are our own grouping, not SP's. US-listed ETFs with no region in the name count as US.</li>
+    <li>US$ at the dólar observado on the last business day of May 2026, as reported by SP.</li>
+  </ul>
+</section>
+</div>
